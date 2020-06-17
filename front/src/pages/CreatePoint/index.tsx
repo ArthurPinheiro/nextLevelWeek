@@ -1,11 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './styles.css';
 import logo from '../../assets/logo.svg';
 import { Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { Map, TileLayer, Marker } from 'react-leaflet';
+import api from '../../service/api';
+import axios from 'axios';
+
+interface Item {
+    id: number,
+    title: string,
+    image_url: string
+};
+
+interface IbgeUfResponse {
+    sigla: string,
+};
 
 const CreatePoint = () => {
+
+    const [items, setItems] = useState<Item[]>([]);
+    const [ufs, setUfs] = useState<string[]>([]);
+
+    useEffect(() => {
+        api.get('items').then(response => {
+            setItems(response.data);
+        });
+    }, []);
+
+    useEffect(() => {
+        axios.get<IbgeUfResponse[]>('https://servicodados.ibge.gov.br/api/v1/localidades/estados').then(response => {
+            const ufInitials = response.data.map(uf => uf.sigla);
+            setUfs(ufInitials);
+        });
+    }, []);
+
     return (
         <div id="page-create-point">
             <header>
@@ -62,6 +91,9 @@ const CreatePoint = () => {
                             <label htmlFor="uf">Estado (UF)</label>
                             <select name="uf" id="uf">
                                 <option value="0">Selecione uma UF</option>
+                                {ufs.map(uf => (
+                                    <option key={uf} value={uf}>{uf}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -82,35 +114,12 @@ const CreatePoint = () => {
                     </legend>
 
                     <ul className="items-grid">
-                        <li>
-                            <img src="http://localhost:3333/uploads/oleo.svg" alt="Teste" />
-                            <span>Óleo de Cozinha</span>
-                        </li>
-
-                        <li>
-                            <img src="http://localhost:3333/uploads/oleo.svg" alt="Teste" />
-                            <span>Óleo de Cozinha</span>
-                        </li>
-
-                        <li>
-                            <img src="http://localhost:3333/uploads/oleo.svg" alt="Teste" />
-                            <span>Óleo de Cozinha</span>
-                        </li>
-
-                        <li>
-                            <img src="http://localhost:3333/uploads/oleo.svg" alt="Teste" />
-                            <span>Óleo de Cozinha</span>
-                        </li>
-
-                        <li>
-                            <img src="http://localhost:3333/uploads/oleo.svg" alt="Teste" />
-                            <span>Óleo de Cozinha</span>
-                        </li>
-
-                        <li>
-                            <img src="http://localhost:3333/uploads/oleo.svg" alt="Teste" />
-                            <span>Óleo de Cozinha</span>
-                        </li>
+                        {items.map(item => (
+                            <li key={item.id}>
+                                <img src={item.image_url} alt={item.title} />
+                                <span>{item.title}</span>
+                            </li>
+                        ))}
                     </ul>
                 </fieldset>
                 <button type="submit">
